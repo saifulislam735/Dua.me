@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { apiWithAuth } from '../utils/api';
@@ -9,10 +9,10 @@ export default function Inbox({ token, userId }) {
   const [messages, setMessages] = useState([]);
   const [replyByMessage, setReplyByMessage] = useState({});
 
-  const loadInbox = async () => {
+  const loadInbox = useCallback(async () => {
     const data = await apiWithAuth('/messages/inbox', token);
     setMessages(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
-  };
+  }, [token]);
 
   useEffect(() => {
     loadInbox();
@@ -20,7 +20,7 @@ export default function Inbox({ token, userId }) {
     socket.emit('inbox:subscribe', userId);
     socket.on('newMessage', loadInbox);
     return () => socket.disconnect();
-  }, [userId]);
+  }, [userId, loadInbox]);
 
   const sendReply = async (id) => {
     try {
