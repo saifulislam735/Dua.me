@@ -19,7 +19,11 @@ export default function Inbox({ token, userId }) {
     const socket = createSocket();
     socket.emit('inbox:subscribe', userId);
     socket.on('newMessage', loadInbox);
-    return () => socket.disconnect();
+    return () => {
+      socket.off('newMessage', loadInbox);
+      socket.emit('inbox:unsubscribe', userId);
+      socket.disconnect();
+    };
   }, [userId, loadInbox]);
 
   const sendReply = async (id) => {
