@@ -4,4 +4,3 @@ coverage/
 .DS_Store
 frontend/build/
 backend/build/
-**/package-lock.json
