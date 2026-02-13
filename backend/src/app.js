@@ -14,10 +14,34 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const app = express();
 configurePassport();
 
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(origin => origin.length > 0);
+
+const corsOptions = allowedOrigins.length > 0
+  ? { origin: allowedOrigins, credentials: true }
+  : { origin: true };
+
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(session({ secret: process.env.SESSION_SECRET || 'dua-session', resave: false, saveUninitialized: false }));
+
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret && process.env.NODE_ENV === 'production') {
+  throw new Error('SESSION_SECRET is required in production');
+}
+
+app.use(session({
+  secret: sessionSecret || 'dua-session',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax'
+  }
+}));
 app.use(passport.initialize());
 
 app.get('/health', (_req, res) => res.json({ ok: true }));

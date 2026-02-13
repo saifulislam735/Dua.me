@@ -26,7 +26,13 @@ async function sendMessage(req, res) {
 
 async function getInbox(req, res) {
   const messages = await Message.listInbox(req.user.sub);
-  const decoded = messages.map((m) => ({ ...m, text: decrypt(m.text) }));
+  const decoded = messages.map((m) => {
+    try {
+      return { ...m, text: decrypt(m.text) };
+    } catch (err) {
+      return { ...m, text: null, decryptionError: true };
+    }
+  });
   return res.json(decoded);
 }
 
