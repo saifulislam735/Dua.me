@@ -16,8 +16,21 @@ configurePassport();
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
 // Configure CORS with environment-based origin restrictions
+const allowedOrigins = process.env.PUBLIC_WEB_BASE 
+  ? process.env.PUBLIC_WEB_BASE.split(',').map(o => o.trim())
+  : ['http://localhost:3000'];
+
 const corsOptions = {
-  origin: process.env.PUBLIC_WEB_BASE || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 };
 app.use(cors(corsOptions));
