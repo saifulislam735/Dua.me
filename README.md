@@ -31,7 +31,7 @@ Anonymous dua/guidance web app with React + Material UI frontend and Node/Expres
 ## Core flow check
 1. Login via magic link endpoint (dev response contains link).
 2. Open `/profile` and share generated `@username` link.
-3. Anonymous sender opens `/<@username>` and sends message.
+3. Anonymous sender opens `/@username` and sends message.
 4. Receiver opens `/inbox` and sees realtime update, can reply/report.
 5. Admin opens `/admin` to moderate reports.
 
