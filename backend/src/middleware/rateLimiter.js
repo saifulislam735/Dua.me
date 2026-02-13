@@ -3,8 +3,15 @@ const maxRequests = 10;
 const buckets = new Map();
 
 function senderRateLimiter(req, res, next) {
-  const key = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const key = req.ip || 'unknown';
   const now = Date.now();
+
+  // Evict buckets whose window has fully expired to prevent unbounded growth.
+  for (const [bucketKey, bucket] of buckets.entries()) {
+    if (now - bucket.start > windowMs) {
+      buckets.delete(bucketKey);
+    }
+  }
   const entry = buckets.get(key) || { count: 0, start: now };
 
   if (now - entry.start > windowMs) {
