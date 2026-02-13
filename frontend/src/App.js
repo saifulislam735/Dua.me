@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppBar, Box, Button, Container, IconButton, Toolbar, Typography } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
@@ -22,8 +22,12 @@ function PrivateRoute({ token, children }) {
 }
 
 export default function App() {
-  const [mode, setMode] = useState('light');
+  const [mode, setMode] = useState(localStorage.getItem('themeMode') || 'light');
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+
+  useEffect(() => {
+    localStorage.setItem('themeMode', mode);
+  }, [mode]);
 
   const theme = useMemo(
     () =>
@@ -48,7 +52,9 @@ export default function App() {
         <AppBar position="static">
           <Toolbar>
             <Typography sx={{ flexGrow: 1 }}>Dua.me</Typography>
-            <IconButton color="inherit" onClick={() => setMode((m) => (m === 'light' ? 'dark' : 'light'))}>{mode === 'light' ? <Brightness4 /> : <Brightness7 />}</IconButton>
+            <IconButton color="inherit" onClick={() => setMode((m) => (m === 'light' ? 'dark' : 'light'))}>
+              {mode === 'light' ? <Brightness4 /> : <Brightness7 />}
+            </IconButton>
             {token ? <Button color="inherit" onClick={logout}>Logout</Button> : <Button color="inherit" href="/login">Login</Button>}
           </Toolbar>
         </AppBar>

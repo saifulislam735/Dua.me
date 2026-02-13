@@ -28,10 +28,10 @@ app.use('/admin', adminRoutes);
 app.use('/payments', paymentRoutes);
 
 if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '../../frontend/build');
+  const frontendPath = path.join(__dirname, '../public');
   app.use(express.static(frontendPath));
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/auth') || req.path.startsWith('/users') || req.path.startsWith('/messages') || req.path.startsWith('/admin') || req.path.startsWith('/payments')) {
+    if (['/auth', '/users', '/messages', '/admin', '/payments', '/health'].some((prefix) => req.path.startsWith(prefix))) {
       return next();
     }
     return res.sendFile(path.join(frontendPath, 'index.html'));

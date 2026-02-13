@@ -15,6 +15,7 @@ async function sendMessage(req, res) {
   const text = (req.body.text || '').trim();
   const template = req.body.template || null;
   if (!text) return res.status(400).json({ error: 'Message text is required' });
+  if (text.length > 1200) return res.status(400).json({ error: 'Message too long (max 1200 chars)' });
 
   const message = await Message.createMessage({ receiverId: receiver.id, text: encrypt(text), template });
   await pool.query('INSERT INTO sender_logs (message_id, sender_ip) VALUES ($1,$2)', [message.id, req.ip || null]);

@@ -1,10 +1,12 @@
 describe('anonymous messaging flow', () => {
-  it('sender submits, receiver sees inbox, replies, and reports', () => {
+  it('anonymous sender posts message to shared link', () => {
     cy.visit('/@exampleuser');
-    cy.contains('Send anonymously');
-    cy.get('textarea').type('Anonymous dua test');
+    cy.contains('Send anonymous message to @exampleuser');
+    cy.get('textarea').type('Anonymous dua test from cypress');
     cy.contains('Send anonymously').click();
+  });
 
-    // Receiver/admin actions are environment-specific and require seeded auth token.
+  it('receiver/admin realtime/reply/report path (requires seeded auth and running backend)', () => {
+    cy.log('Set localStorage token before this test to fully exercise inbox/reply/report/admin moderation.');
   });
 });

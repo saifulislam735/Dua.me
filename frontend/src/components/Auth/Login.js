@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Stack, TextField, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 
 export default function Login({ onToken }) {
   const [email, setEmail] = useState('');
   const [magicToken, setMagicToken] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const qs = new URLSearchParams(location.search);
+    const token = qs.get('token');
+    if (token) {
+      setMagicToken(token);
+    }
+  }, [location.search]);
 
   const requestLink = async () => {
-    const data = await api('/auth/email/magic-link', { method: 'POST', body: JSON.stringify({ email }) });
-    toast.info(`Magic link generated (dev): ${data.magicLink}`);
+    try {
+      const data = await api('/auth/email/magic-link', { method: 'POST', body: JSON.stringify({ email }) });
+      toast.success('Magic link sent. Check your email.');
+      if (data.magicLink) toast.info(`Dev link: ${data.magicLink}`);
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const verifyLink = async () => {
-    const data = await api(`/auth/magic/verify?token=${encodeURIComponent(magicToken)}`);
-    localStorage.setItem('token', data.token);
-    onToken(data.token);
-    toast.success('Logged in');
+    try {
+      const data = await api(`/auth/magic/verify?token=${encodeURIComponent(magicToken)}`);
+      localStorage.setItem('token', data.token);
+      onToken(data.token);
+      toast.success('Logged in');
+      navigate('/profile');
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   return (

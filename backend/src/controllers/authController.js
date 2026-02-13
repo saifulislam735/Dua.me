@@ -6,10 +6,28 @@ const User = require('../models/User');
 
 function issueToken(user) {
   return jwt.sign(
-    { sub: user.id, email: user.email, username: user.username, isAdmin: user.is_admin },
+    {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+      isAdmin: user.is_admin,
+      isPremium: user.is_premium
+    },
     process.env.JWT_SECRET || 'dev-secret',
     { expiresIn: '7d' }
   );
+}
+
+function createTransport() {
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: String(process.env.SMTP_SECURE || 'false') === 'true',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+    });
+  }
+  return nodemailer.createTransport({ jsonTransport: true });
 }
 
 async function requestMagicLink(req, res) {
@@ -19,22 +37,24 @@ async function requestMagicLink(req, res) {
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
   await pool.query('INSERT INTO magic_links (email, token, expires_at) VALUES ($1,$2,$3)', [email, token, expiresAt]);
 
-  const base = process.env.PUBLIC_API_BASE || `http://localhost:${process.env.PORT || 4000}`;
-  const url = `${base}/auth/magic/verify?token=${token}`;
+  const webBase = process.env.PUBLIC_WEB_BASE || 'http://localhost:3000';
+  const magicUrl = `${webBase}/login?token=${token}`;
 
-  const transporter = nodemailer.createTransport({ jsonTransport: true });
+  const transporter = createTransport();
   await transporter.sendMail({
     from: process.env.MAIL_FROM || 'no-reply@dua.me',
     to: email,
     subject: 'Your Dua.me sign in link',
-    text: `Use this link to sign in: ${url}`
+    text: `Use this link to sign in: ${magicUrl}`
   });
 
-  return res.json({ ok: true, magicLink: url });
+  return res.json({ ok: true, magicLink: magicUrl });
 }
 
 async function verifyMagicLink(req, res) {
   const { token } = req.query;
+  if (!token) return res.status(400).json({ error: 'Token is required' });
+
   const { rows } = await pool.query(
     'SELECT id, email FROM magic_links WHERE token = $1 AND used_at IS NULL AND expires_at > NOW() ORDER BY id DESC LIMIT 1',
     [token]

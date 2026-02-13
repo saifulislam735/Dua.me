@@ -24,13 +24,26 @@ export default function Inbox({ token, userId }) {
 
   const sendReply = async (id) => {
     try {
-      await apiWithAuth(`/messages/reply/${id}`, token, { method: 'POST', body: JSON.stringify({ reply: replyByMessage[id] || '' }) });
+      const reply = (replyByMessage[id] || '').trim();
+      if (!reply) return toast.error('Reply cannot be empty');
+      await apiWithAuth(`/messages/reply/${id}`, token, { method: 'POST', body: JSON.stringify({ reply }) });
       toast.success('Reply sent');
       await loadInbox();
     } catch (error) {
       toast.error(error.message);
     }
   };
+
+  if (messages.length === 0) {
+    return (
+      <Card>
+        <CardContent>
+          <Typography variant="h6">No messages yet</Typography>
+          <Typography>No messages yet – share your link to receive duas!</Typography>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Stack spacing={2}>
