@@ -2,7 +2,6 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const session = require('express-session');
 const { passport, configurePassport } = require('./config/passport');
 
 const authRoutes = require('./routes/authRoutes');
@@ -15,9 +14,28 @@ const app = express();
 configurePassport();
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors());
+
+// Configure CORS with environment-based origin restrictions
+const allowedOrigins = process.env.PUBLIC_WEB_BASE 
+  ? process.env.PUBLIC_WEB_BASE.split(',').map(o => o.trim())
+  : ['http://localhost:3000'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
-app.use(session({ secret: process.env.SESSION_SECRET || 'dua-session', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
