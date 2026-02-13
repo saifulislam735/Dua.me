@@ -39,9 +39,12 @@ app.use(cors({
 app.use(express.json());
 
 // Require SESSION_SECRET in production
-const sessionSecret = process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? undefined : 'dua-session');
+let sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
-  throw new Error('SESSION_SECRET is required in production');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET is required in production');
+  }
+  sessionSecret = 'dua-session';
 }
 
 app.use(session({

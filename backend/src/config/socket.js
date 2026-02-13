@@ -31,7 +31,10 @@ function configureSocket(io) {
 
     socket.on('inbox:subscribe', (userId) => {
       // Ignore client-supplied userId and rely on authenticated user identity
-      if (!authenticatedUserId) return;
+      if (!authenticatedUserId) {
+        socket.emit('error', 'Authentication required');
+        return;
+      }
       socket.join(`inbox:${authenticatedUserId}`);
     });
   });
