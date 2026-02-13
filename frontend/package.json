@@ -1,0 +1,9 @@
+{
+  "name": "dua-me-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "echo 'Install React dependencies and run with your preferred toolchain'",
+    "test": "echo 'Add frontend tests with Jest/RTL'"
+  }
+}
