@@ -19,6 +19,10 @@ const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .map(origin => origin.trim())
   .filter(origin => origin.length > 0);
 
+if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
+  throw new Error('CORS_ORIGINS must be set in production');
+}
+
 const corsOptions = allowedOrigins.length > 0
   ? { origin: allowedOrigins, credentials: true }
   : { origin: true };

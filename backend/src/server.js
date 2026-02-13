@@ -9,6 +9,10 @@ const allowedOrigins = (process.env.SOCKET_IO_CORS_ORIGINS || '')
   .map(origin => origin.trim())
   .filter(origin => origin.length > 0);
 
+if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
+  throw new Error('SOCKET_IO_CORS_ORIGINS must be set in production');
+}
+
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: allowedOrigins.length > 0 ? allowedOrigins : true } });
 
